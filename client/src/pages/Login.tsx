@@ -2,8 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,60 +11,59 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiTestResult, setApiTestResult] = useState("");
-  const { login } = useAuth();
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
-  
-  // Test direct API connection on load
-  useEffect(() => {
-    const testApiConnection = async () => {
-      try {
-        const startTime = Date.now();
-        const response = await fetch('/api/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: 'admin', password: 'admin123' })
-        });
-        const endTime = Date.now();
-        const data = await response.json();
-        setApiTestResult(`API Direct Test: Status ${response.status}, Time ${endTime - startTime}ms, Token: ${data?.token ? 'Received' : 'Not received'}`);
-      } catch (err: any) {
-        setApiTestResult(`API Direct Test Error: ${err.message}`);
-      }
-    };
-    
-    testApiConnection();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    console.log("Logging in with:", username, password);
+    console.log("Login attempt with:", username, password);
 
     try {
-      // Use the existing auth function
-      const success = await login(username, password);
-      console.log("Login result:", success);
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
       
-      if (success) {
-        toast({
-          title: "Login successful",
-          description: "Welcome to DVC SnapE admin panel",
-        });
-        setLocation("/users");
+      console.log("Login response status:", response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Login success, token received");
+        
+        if (data.token) {
+          // Save token and set authenticated state
+          localStorage.setItem("adminToken", data.token);
+          
+          toast({
+            title: "Login successful",
+            description: "Welcome to DVC SnapE admin panel",
+          });
+          
+          // Redirect to user management
+          window.location.href = "/users";
+          return;
+        }
       } else {
-        setError("Invalid credentials. Please try again. Make sure you're using 'admin' as username and 'admin123' as password.");
-        console.error("Login failed with credentials:", { username, password });
+        // Try to get the error message from the response
+        let errorMsg = "Invalid credentials";
+        try {
+          const errorData = await response.json();
+          if (errorData && errorData.message) {
+            errorMsg = errorData.message;
+          }
+        } catch (e) {
+          // If we can't parse the JSON, use the default error message
+        }
+        
+        setError(`Login failed: ${errorMsg}. Please try again with username 'admin' and password 'admin123'.`);
+        console.error("Login failed. Status:", response.status);
       }
     } catch (err: any) {
-      let errorMessage = "An error occurred. Please try again.";
-      if (err && err.message) {
-        errorMessage = `Error: ${err.message}`;
-      }
-      setError(errorMessage);
-      console.error("Login error:", err);
+      setError(`Network error: ${err.message}. Please check your connection.`);
+      console.error("Login network error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -111,13 +109,6 @@ export default function Login() {
             
             {error && (
               <div className="text-red-500 text-sm">{error}</div>
-            )}
-            
-            {apiTestResult && (
-              <div className="text-xs mt-2 p-2 bg-gray-100 rounded">
-                <div className="font-bold">Debug Info:</div>
-                <div>{apiTestResult}</div>
-              </div>
             )}
             
             <Button 

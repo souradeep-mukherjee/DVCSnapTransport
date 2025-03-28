@@ -1,5 +1,4 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { 
   Users, 
@@ -30,11 +29,13 @@ const SidebarLink = ({ href, icon, children, active }: SidebarLinkProps) => (
 );
 
 export default function Sidebar() {
-  const [location] = useLocation();
-  const { logout } = useAuth();
+  const [location, setLocation] = useLocation();
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    // Remove token from localStorage
+    localStorage.removeItem("adminToken");
+    // Redirect to login page
+    window.location.href = "/login";
   };
 
   return (

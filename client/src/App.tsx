@@ -7,21 +7,39 @@ import UserManagement from "@/pages/UserManagement";
 import BookingRequests from "@/pages/BookingRequests";
 import DriverAllocation from "@/pages/DriverAllocation";
 import HealthCheck from "@/pages/HealthCheck";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-function Router() {
-  const [location, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
+// Protected route component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [_, navigate] = useLocation();
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      navigate("/login");
+      setIsAuthenticated(false);
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [navigate]);
+
+  // Show nothing while checking authentication
+  if (isAuthenticated === null) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   // Redirect to login if not authenticated
-  useEffect(() => {
-    const excludedPaths = ["/login", "/health"];
-    if (!isAuthenticated && !excludedPaths.includes(location)) {
-      setLocation("/login");
-    }
-  }, [isAuthenticated, location, setLocation]);
+  if (!isAuthenticated) {
+    return null;
+  }
 
+  // Render children if authenticated
+  return <Layout>{children}</Layout>;
+}
+
+function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
@@ -29,43 +47,27 @@ function Router() {
       <Route path="/health" component={HealthCheck} />
       
       <Route path="/">
-        {isAuthenticated ? (
-          <Layout>
-            <UserManagement />
-          </Layout>
-        ) : (
-          <Login />
-        )}
+        <ProtectedRoute>
+          <UserManagement />
+        </ProtectedRoute>
       </Route>
       
       <Route path="/users">
-        {isAuthenticated ? (
-          <Layout>
-            <UserManagement />
-          </Layout>
-        ) : (
-          <Login />
-        )}
+        <ProtectedRoute>
+          <UserManagement />
+        </ProtectedRoute>
       </Route>
       
       <Route path="/bookings">
-        {isAuthenticated ? (
-          <Layout>
-            <BookingRequests />
-          </Layout>
-        ) : (
-          <Login />
-        )}
+        <ProtectedRoute>
+          <BookingRequests />
+        </ProtectedRoute>
       </Route>
       
       <Route path="/allocation">
-        {isAuthenticated ? (
-          <Layout>
-            <DriverAllocation />
-          </Layout>
-        ) : (
-          <Login />
-        )}
+        <ProtectedRoute>
+          <DriverAllocation />
+        </ProtectedRoute>
       </Route>
       
       <Route component={NotFound} />
