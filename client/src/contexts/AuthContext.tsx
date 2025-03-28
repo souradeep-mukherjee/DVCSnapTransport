@@ -35,6 +35,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log("AuthContext: Login called with", username);
     try {
       console.log("AuthContext: Calling API login");
+      
+      // Clear any existing tokens to avoid auth conflicts
+      localStorage.removeItem("adminToken");
+      
       const data = await apiAdminLogin(username, password);
       console.log("AuthContext: API response", data);
       
@@ -49,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     } catch (error) {
       console.error("AuthContext: Login error:", error);
-      return false;
+      throw error; // Rethrow to be caught by the Login component
     }
   };
 

@@ -34,10 +34,15 @@ export default function Login() {
         });
         setLocation("/users");
       } else {
-        setError("Invalid credentials. Please try again.");
+        setError("Invalid credentials. Please try again. Make sure you're using 'admin' as username and 'admin123' as password.");
+        console.error("Login failed with credentials:", { username, password });
       }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
+    } catch (err: any) {
+      let errorMessage = "An error occurred. Please try again.";
+      if (err && err.message) {
+        errorMessage = `Error: ${err.message}`;
+      }
+      setError(errorMessage);
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);

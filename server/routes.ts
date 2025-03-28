@@ -39,7 +39,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin login
   app.post("/api/admin/login", async (req: Request, res: Response) => {
-    console.log("Admin login attempt with body:", JSON.stringify(req.body));
+    console.log("======= ADMIN LOGIN DEBUG =======");
+    console.log("Admin login attempt received");
+    console.log("Headers:", JSON.stringify(req.headers));
+    console.log("Body:", JSON.stringify(req.body));
+    console.log("Method:", req.method);
+    console.log("URL:", req.url);
+    console.log("================================");
     
     const { data, error } = validateRequest(adminLoginSchema, req.body);
     if (error) {

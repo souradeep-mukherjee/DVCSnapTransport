@@ -3,7 +3,8 @@ import { apiRequest } from "./queryClient";
 // Admin API calls
 export const adminLogin = async (username: string, password: string) => {
   try {
-    console.log("api.ts: Making admin login request");
+    console.log("api.ts: Making admin login request to /api/admin/login");
+    
     // Direct fetch for login to avoid circular dependency with authorization
     const res = await fetch('/api/admin/login', {
       method: 'POST',
@@ -14,15 +15,28 @@ export const adminLogin = async (username: string, password: string) => {
     
     console.log("api.ts: Login response status:", res.status);
     
-    if (!res.ok) {
-      const error = await res.text();
-      console.error("api.ts: Login failed with status", res.status, error);
-      throw new Error(error || res.statusText);
+    // Parse response data first, regardless of status
+    let responseData;
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      responseData = await res.json();
+      console.log("api.ts: Parsed JSON response:", responseData);
+    } else {
+      responseData = await res.text();
+      console.log("api.ts: Got text response:", responseData);
     }
     
-    const data = await res.json();
+    // Handle error cases
+    if (!res.ok) {
+      console.error("api.ts: Login failed with status", res.status);
+      const errorMessage = typeof responseData === 'string' 
+        ? responseData 
+        : (responseData.message || res.statusText);
+      throw new Error(errorMessage);
+    }
+    
     console.log("api.ts: Login successful, token received");
-    return data;
+    return responseData;
   } catch (error) {
     console.error('api.ts: Login error:', error);
     throw error;
