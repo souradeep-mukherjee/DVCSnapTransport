@@ -63,7 +63,7 @@ export class MongoStorage implements IStorage {
   private _formatDocument(doc: any): any {
     if (!doc) return doc;
     const { _id, ...rest } = doc;
-    return { id: Number(_id), ...rest };
+    return { id: new ObjectId(_id), ...rest };
   }
 
   // Ensure userId and other nullable fields are properly formatted
@@ -84,9 +84,9 @@ export class MongoStorage implements IStorage {
   }
 
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     if (!this.connected) throw new Error('MongoDB not connected');
-    const user = await this.users.findOne({ _id: Number(id) });
+    const user = await this.users.findOne({ _id: new ObjectId(id) });
     return user ? this._formatDocument(user) : undefined;
   }
 
@@ -112,10 +112,8 @@ export class MongoStorage implements IStorage {
       { upsert: true, returnDocument: 'after' }
     );
     
-    const userId = counter.value.seq;
     
     const userDoc = {
-      _id: userId,
       ...this._formatInsertData(insertUser),
       status: 'pending',
       createdAt: new Date()
@@ -125,22 +123,23 @@ export class MongoStorage implements IStorage {
     return this._formatDocument(userDoc);
   }
 
-  async updateUserStatus(id: number, status: string): Promise<User | undefined> {
+  async updateUserStatus(userid: string, status: string): Promise<User | undefined> {
     if (!this.connected) throw new Error('MongoDB not connected');
     
     const result = await this.users.findOneAndUpdate(
-      { _id: Number(id) },
+      { _id: new ObjectId(userid) },
       { $set: { status } },
       { returnDocument: 'after' }
     );
     
-    return result.value ? this._formatDocument(result.value) : undefined;
+    return result && result.value ? this._formatDocument(result.value) : undefined;
   }
 
   async getPendingUsers(): Promise<User[]> {
     if (!this.connected) throw new Error('MongoDB not connected');
     
     const users = await this.users.find({ status: 'pending' }).toArray();
+    console.log(users);
     return users.map(this._formatDocument);
   }
 
@@ -161,14 +160,12 @@ export class MongoStorage implements IStorage {
       { $inc: { seq: 1 } },
       { upsert: true, returnDocument: 'after' }
     );
-    
-    const otpId = counter.value.seq;
+  
     
     // Remove any existing OTPs for this phone number
     await this.otps.deleteMany({ phoneNumber: insertOtp.phoneNumber });
     
     const otpDoc = {
-      _id: otpId,
       ...this._formatInsertData(insertOtp),
       createdAt: new Date(),
       isVerified: false
@@ -220,10 +217,8 @@ export class MongoStorage implements IStorage {
       { upsert: true, returnDocument: 'after' }
     );
     
-    const bookingId = counter.value.seq;
     
     const bookingDoc = {
-      _id: bookingId,
       ...this._formatInsertData(insertBooking),
       status: 'pending',
       createdAt: new Date()
@@ -236,12 +231,12 @@ export class MongoStorage implements IStorage {
   async getBooking(id: number): Promise<Booking | undefined> {
     if (!this.connected) throw new Error('MongoDB not connected');
     
-    const booking = await this.bookings.findOne({ _id: Number(id) });
+    const booking = await this.bookings.findOne({ _id: new ObjectId(id) });
     if (!booking) return undefined;
     
     // Get user details if needed
     const bookingWithUser = this._formatDocument(booking);
-    const user = await this.users.findOne({ _id: Number(booking.userId) });
+    const user = await this.users.findOne({ _id: new ObjectId(booking.userId) });
     
     if (user) {
       bookingWithUser.user = this._formatDocument(user);
@@ -265,7 +260,7 @@ export class MongoStorage implements IStorage {
     
     // Get user details for each booking
     for (const booking of formattedBookings) {
-      const user = await this.users.findOne({ _id: Number(booking.userId) });
+      const user = await this.users.findOne({ _id: new ObjectId(booking.userId) });
       if (user) {
         booking.user = this._formatDocument(user);
       }
@@ -282,7 +277,7 @@ export class MongoStorage implements IStorage {
     
     // Get user details for each booking
     for (const booking of formattedBookings) {
-      const user = await this.users.findOne({ _id: Number(booking.userId) });
+      const user = await this.users.findOne({ _id: new ObjectId(booking.userId) });
       if (user) {
         booking.user = this._formatDocument(user);
       }
@@ -293,7 +288,7 @@ export class MongoStorage implements IStorage {
         const formattedAllocation = this._formatDocument(allocation);
         
         // Get driver details
-        const driver = await this.drivers.findOne({ _id: Number(allocation.driverId) });
+        const driver = await this.drivers.findOne({ _id: new ObjectId(allocation.driverId) });
         if (driver) {
           formattedAllocation.driver = this._formatDocument(driver);
         }
@@ -311,7 +306,7 @@ export class MongoStorage implements IStorage {
     if (!this.connected) throw new Error('MongoDB not connected');
     
     const result = await this.bookings.findOneAndUpdate(
-      { _id: Number(id) },
+      { _id: new Object(id) },
       { $set: { status } },
       { returnDocument: 'after' }
     );
@@ -330,10 +325,8 @@ export class MongoStorage implements IStorage {
       { upsert: true, returnDocument: 'after' }
     );
     
-    const driverId = counter.value.seq;
     
     const driverDoc = {
-      _id: driverId,
       ...this._formatInsertData(insertDriver),
       status: 'available',
       createdAt: new Date()
@@ -375,10 +368,8 @@ export class MongoStorage implements IStorage {
       { upsert: true, returnDocument: 'after' }
     );
     
-    const allocationId = counter.value.seq;
     
     const allocationDoc = {
-      _id: allocationId,
       ...this._formatInsertData(insertAllocation),
       status: 'assigned',
       createdAt: new Date()
@@ -440,10 +431,8 @@ export class MongoStorage implements IStorage {
       { upsert: true, returnDocument: 'after' }
     );
     
-    const sessionId = counter.value.seq;
     
     const sessionDoc = {
-      _id: sessionId,
       ...this._formatInsertData(insertSession),
       createdAt: new Date()
     };

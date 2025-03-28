@@ -1,0 +1,281 @@
+DVC SnapE API Documentation
+Here's a comprehensive documentation of all the APIs available in the DVC SnapE transportation booking management system. You can use these endpoints to test and interact with the system.
+
+Admin APIs
+Admin Authentication
+Admin Login
+Endpoint: POST /api/admin/login
+Authentication: None
+Description: Authenticates an admin user and provides a JWT token for accessing protected resources.
+Request Body:
+{
+  "username": "admin",
+  "password": "admin123"
+}
+Success Response (200):
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+Error Response (401):
+{
+  "message": "Invalid credentials"
+}
+User Management
+Get Pending Users
+Endpoint: GET /api/admin/users/pending
+Authentication: Bearer Token (Admin)
+Description: Retrieves a list of all user registrations pending approval.
+Success Response (200):
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phoneNumber": "9876543210",
+    "employeeNumber": "EMP001",
+    "department": "Engineering",
+    "status": "pending"
+  }
+]
+Update User Status
+Endpoint: PUT /api/admin/users/status
+Authentication: Bearer Token (Admin)
+Description: Approves or rejects a user registration.
+Request Body:
+{
+  "id": 1,
+  "status": "approved"
+}
+Success Response (200):
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phoneNumber": "9876543210",
+  "employeeNumber": "EMP001",
+  "department": "Engineering",
+  "status": "approved"
+}
+Booking Management
+Get Pending Bookings
+Endpoint: GET /api/admin/bookings/pending
+Authentication: Bearer Token (Admin)
+Description: Retrieves all booking requests pending approval.
+Success Response (200):
+[
+  {
+    "id": 1,
+    "userId": 2,
+    "purpose": "Client Meeting",
+    "pickupAddress": "Office HQ, Building A",
+    "dropAddress": "Client Office, Downtown",
+    "pickupDateTime": "2025-04-01T10:00:00Z",
+    "returnDateTime": "2025-04-01T15:00:00Z",
+    "status": "pending",
+    "user": {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "phoneNumber": "8765432109"
+    }
+  }
+]
+Update Booking Status
+Endpoint: PATCH /api/admin/bookings/status
+Authentication: Bearer Token (Admin)
+Description: Approves or rejects a booking request.
+Request Body:
+{
+  "id": 1,
+  "status": "approved"
+}
+Success Response (200):
+{
+  "id": 1,
+  "userId": 2,
+  "purpose": "Client Meeting",
+  "pickupAddress": "Office HQ, Building A",
+  "dropAddress": "Client Office, Downtown",
+  "pickupDateTime": "2025-04-01T10:00:00Z",
+  "returnDateTime": "2025-04-01T15:00:00Z",
+  "status": "approved"
+}
+Get Approved Bookings
+Endpoint: GET /api/admin/bookings/approved
+Authentication: Bearer Token (Admin)
+Description: Retrieves all approved booking requests for driver allocation.
+Success Response (200):
+[
+  {
+    "id": 1,
+    "userId": 2,
+    "purpose": "Client Meeting",
+    "pickupAddress": "Office HQ, Building A",
+    "dropAddress": "Client Office, Downtown",
+    "pickupDateTime": "2025-04-01T10:00:00Z",
+    "returnDateTime": "2025-04-01T15:00:00Z",
+    "status": "approved",
+    "user": {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "phoneNumber": "8765432109"
+    },
+    "allocation": null
+  }
+]
+Driver Management
+Get All Drivers
+Endpoint: GET /api/admin/drivers
+Authentication: Bearer Token (Admin)
+Description: Retrieves all drivers registered in the system.
+Success Response (200):
+[
+  {
+    "id": 1,
+    "name": "Mike Johnson",
+    "phoneNumber": "7654321098",
+    "licenseNumber": "DL12345678",
+    "status": "available"
+  }
+]
+Allocate Driver
+Endpoint: POST /api/admin/allocate
+Authentication: Bearer Token (Admin)
+Description: Assigns a driver to an approved booking.
+Request Body:
+{
+  "bookingId": 1,
+  "driverId": 1
+}
+Success Response (200):
+{
+  "id": 1,
+  "bookingId": 1,
+  "driverId": 1,
+  "status": "allocated"
+}
+User APIs
+User Registration and Authentication
+Register User
+Endpoint: POST /api/user/register
+Authentication: None
+Description: Registers a new user and sends an OTP for verification.
+Request Body:
+{
+  "name": "Alice Brown",
+  "email": "alice@example.com",
+  "phoneNumber": "6543210987",
+  "employeeNumber": "EMP003",
+  "department": "Marketing"
+}
+Success Response (201):
+{
+  "id": 3,
+  "name": "Alice Brown",
+  "email": "alice@example.com",
+  "phoneNumber": "6543210987",
+  "employeeNumber": "EMP003",
+  "department": "Marketing",
+  "status": "pending"
+}
+Verify OTP
+Endpoint: POST /api/user/verify-otp
+Authentication: None
+Description: Verifies the OTP sent to a user's phone number during registration.
+Request Body:
+{
+  "phoneNumber": "6543210987",
+  "otp": "123456"
+}
+Success Response (200):
+{
+  "verified": true
+}
+User Login (Request OTP)
+Endpoint: POST /api/user/login
+Authentication: None
+Description: Initiates user login by sending an OTP to the registered phone number.
+Request Body:
+{
+  "phoneNumber": "6543210987"
+}
+Success Response (200):
+{
+  "message": "OTP sent successfully"
+}
+User Login (Verify OTP)
+Endpoint: POST /api/user/login/verify
+Authentication: None
+Description: Completes user login by verifying the OTP and issuing a token.
+Request Body:
+{
+  "phoneNumber": "6543210987",
+  "otp": "123456"
+}
+Success Response (200):
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 3,
+    "name": "Alice Brown",
+    "email": "alice@example.com",
+    "phoneNumber": "6543210987",
+    "status": "approved"
+  }
+}
+User Logout
+Endpoint: POST /api/user/logout
+Authentication: Bearer Token (User)
+Description: Invalidates the user's authentication token.
+Request Body: None
+Success Response (200):
+{
+  "message": "Logged out successfully"
+}
+Booking Management (User)
+Create Booking
+Endpoint: POST /api/user/bookings
+Authentication: Bearer Token (User)
+Description: Creates a new booking request.
+Request Body:
+{
+  "purpose": "Team Offsite",
+  "pickupAddress": "Office HQ, Building B",
+  "dropAddress": "Beach Resort, Coastal Road",
+  "pickupDateTime": "2025-04-15T09:00:00Z",
+  "returnDateTime": "2025-04-15T18:00:00Z"
+}
+Success Response (201):
+{
+  "id": 2,
+  "userId": 3,
+  "purpose": "Team Offsite",
+  "pickupAddress": "Office HQ, Building B",
+  "dropAddress": "Beach Resort, Coastal Road",
+  "pickupDateTime": "2025-04-15T09:00:00Z",
+  "returnDateTime": "2025-04-15T18:00:00Z",
+  "status": "pending"
+}
+Testing the APIs
+Testing Admin APIs:
+First login with admin credentials to get the token:
+curl -X POST http://localhost:5000/api/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+Use the returned token in subsequent requests:
+curl -X GET http://localhost:5000/api/admin/users/pending \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+Testing User APIs:
+Register a new user:
+curl -X POST http://localhost:5000/api/user/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","phoneNumber":"1234567890","employeeNumber":"EMP999","department":"Testing"}'
+In a real environment, the user would receive an OTP. For testing, you might need to check server logs or database to get the OTP value, then verify it:
+curl -X POST http://localhost:5000/api/user/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{"phoneNumber":"1234567890","otp":"123456"}'
+The Gupshup API for OTP delivery requires valid credentials. For testing purposes, you can check the MongoDB database or server logs to find the generated OTP.
+
+
+SERVER STARTS AFTER MONGO DB STARTS

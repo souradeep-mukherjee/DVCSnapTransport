@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+import { ObjectId } from "mongodb";
+import { string, z } from "zod";
 
 // User table schema
 export const users = pgTable("users", {
@@ -17,7 +18,7 @@ export const users = pgTable("users", {
 // OTP table schema
 export const otps = pgTable("otps", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: integer("userId").references(() => users.id),
   phoneNumber: text("phone_number").notNull(),
   otp: text("otp").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
@@ -28,7 +29,7 @@ export const otps = pgTable("otps", {
 // Booking table schema
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: string("userId"),
   purpose: text("purpose").notNull(),
   pickupAddress: text("pickup_address").notNull(),
   dropAddress: text("drop_address").notNull(),
@@ -60,7 +61,7 @@ export const allocations = pgTable("allocations", {
 // Sessions table schema
 export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: integer("userId").references(() => users.id),
   token: text("token").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -114,7 +115,7 @@ export const adminLoginSchema = z.object({
 });
 
 export const updateUserStatusSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   status: z.enum(["approved", "rejected"]),
 });
 

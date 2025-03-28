@@ -68,14 +68,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get pending users
   app.get("/api/admin/users/pending", authenticateAdmin, async (req: Request, res: Response) => {
     const pendingUsers = await storage.getPendingUsers();
+    console.log(pendingUsers);
     return res.status(200).json(pendingUsers);
   });
+  
 
   // Approve or reject user
   app.put("/api/admin/users/status", authenticateAdmin, async (req: Request, res: Response) => {
     const { data, error } = validateRequest(updateUserStatusSchema, req.body);
     if (error) return res.status(400).json({ message: "Invalid input", error });
-
+    
     const user = await storage.getUser(data.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -344,7 +346,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Create booking
     const booking = await storage.createBooking({
       ...data,
-      userId
     });
 
     return res.status(201).json(booking);
