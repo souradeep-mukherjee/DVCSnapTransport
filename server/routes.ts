@@ -19,9 +19,17 @@ import {
   logout
 } from "./auth";
 import { saveOTP, sendOTP, verifyOTP } from "./otp";
+import { setupVite, serveStatic } from "./vite";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+  
+  // Setup Vite middleware for development
+  if (process.env.NODE_ENV !== 'production') {
+    await setupVite(app, httpServer);
+  } else {
+    serveStatic(app);
+  }
 
   // Helper for handling validation errors
   const validateRequest = (schema: any, data: any) => {

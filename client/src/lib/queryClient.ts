@@ -1,5 +1,18 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Get the API base URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+/**
+ * Utility function to prepend the API base URL if the url doesn't start with http
+ */
+function getFullUrl(url: string): string {
+  if (url.startsWith('http')) {
+    return url; // Already a full URL
+  }
+  return `${API_BASE_URL}${url}`;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -23,13 +36,16 @@ export async function apiRequest(
     headers["Authorization"] = `Bearer ${token}`;
   }
   
-  console.log(`Making ${method} request to ${url} with token: ${token ? 'Yes' : 'No'}`);
+  const fullUrl = getFullUrl(url);
+  console.log(`Making ${method} request to ${fullUrl} with token: ${token ? 'Yes' : 'No'}`);
 
-  const res = await fetch(url, {
+  // Use mode: 'cors' for cross-origin requests when frontend and backend are separate
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
+    mode: 'cors'
   });
 
   if (!res.ok) {
@@ -57,9 +73,14 @@ export const getQueryFn: <T>(options: {
     }
 
     try {
-      const res = await fetch(queryKey[0] as string, {
+      const url = queryKey[0] as string;
+      const fullUrl = getFullUrl(url);
+      
+      // Use mode: 'cors' for cross-origin requests when frontend and backend are separate
+      const res = await fetch(fullUrl, {
         credentials: "include",
-        headers
+        headers,
+        mode: 'cors'
       });
 
       if (unauthorizedBehavior === "returnNull" && res.status === 401) {
