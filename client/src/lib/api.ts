@@ -3,7 +3,19 @@ import { apiRequest } from "./queryClient";
 // Admin API calls
 export const adminLogin = async (username: string, password: string) => {
   try {
-    const res = await apiRequest('POST', '/api/admin/login', { username, password });
+    // Direct fetch for login to avoid circular dependency with authorization
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include'
+    });
+    
+    if (!res.ok) {
+      const error = await res.text();
+      throw new Error(error || res.statusText);
+    }
+    
     return await res.json();
   } catch (error) {
     console.error('Login error:', error);

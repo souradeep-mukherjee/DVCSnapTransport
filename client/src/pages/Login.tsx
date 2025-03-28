@@ -22,6 +22,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      // Use the existing auth function
       const success = await login(username, password);
       if (success) {
         toast({
