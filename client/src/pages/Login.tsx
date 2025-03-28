@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -12,9 +12,31 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [apiTestResult, setApiTestResult] = useState("");
   const { login } = useAuth();
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // Test direct API connection on load
+  useEffect(() => {
+    const testApiConnection = async () => {
+      try {
+        const startTime = Date.now();
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'admin', password: 'admin123' })
+        });
+        const endTime = Date.now();
+        const data = await response.json();
+        setApiTestResult(`API Direct Test: Status ${response.status}, Time ${endTime - startTime}ms, Token: ${data?.token ? 'Received' : 'Not received'}`);
+      } catch (err: any) {
+        setApiTestResult(`API Direct Test Error: ${err.message}`);
+      }
+    };
+    
+    testApiConnection();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +111,13 @@ export default function Login() {
             
             {error && (
               <div className="text-red-500 text-sm">{error}</div>
+            )}
+            
+            {apiTestResult && (
+              <div className="text-xs mt-2 p-2 bg-gray-100 rounded">
+                <div className="font-bold">Debug Info:</div>
+                <div>{apiTestResult}</div>
+              </div>
             )}
             
             <Button 

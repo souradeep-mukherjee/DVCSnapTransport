@@ -39,8 +39,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Clear any existing tokens to avoid auth conflicts
       localStorage.removeItem("adminToken");
       
-      const data = await apiAdminLogin(username, password);
-      console.log("AuthContext: API response", data);
+      // Using direct fetch instead of the API wrapper to bypass any potential issues
+      console.log("AuthContext: Using direct fetch to /api/admin/login");
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      console.log("AuthContext: Direct fetch response status:", response.status);
+      
+      if (!response.ok) {
+        console.error("AuthContext: Direct fetch failed with status", response.status);
+        return false;
+      }
+      
+      const data = await response.json();
+      console.log("AuthContext: Direct fetch response data:", data);
       
       if (data && data.token) {
         console.log("AuthContext: Setting token in localStorage");
@@ -49,6 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(true);
         return true;
       }
+      
       console.log("AuthContext: No token received, login failed");
       return false;
     } catch (error) {
