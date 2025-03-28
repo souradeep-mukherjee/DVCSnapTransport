@@ -16,15 +16,15 @@ interface SidebarLinkProps {
 
 const SidebarLink = ({ href, icon, children, active }: SidebarLinkProps) => (
   <Link href={href}>
-    <a className={cn(
-      "flex items-center px-6 py-3 transition-colors",
+    <div className={cn(
+      "flex items-center px-6 py-3 transition-colors cursor-pointer",
       active 
         ? "text-primary font-medium" 
         : "text-neutral-400 hover:text-primary"
     )}>
       {icon}
       <span className="ml-3">{children}</span>
-    </a>
+    </div>
   </Link>
 );
 
@@ -35,7 +35,7 @@ export default function Sidebar() {
     // Remove token from localStorage
     localStorage.removeItem("adminToken");
     // Redirect to login page
-    window.location.href = "/login";
+    setLocation("/login");
   };
 
   return (

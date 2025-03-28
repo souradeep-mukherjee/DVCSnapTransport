@@ -43,7 +43,7 @@ export default function Login() {
           });
           
           // Redirect to user management
-          window.location.href = "/users";
+          setLocation("/users");
           return;
         }
       } else {
