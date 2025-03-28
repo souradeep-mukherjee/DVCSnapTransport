@@ -39,14 +39,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin login
   app.post("/api/admin/login", async (req: Request, res: Response) => {
+    console.log("Admin login attempt with body:", JSON.stringify(req.body));
+    
     const { data, error } = validateRequest(adminLoginSchema, req.body);
-    if (error) return res.status(400).json({ message: "Invalid input", error });
+    if (error) {
+      console.log("Login validation error:", JSON.stringify(error));
+      return res.status(400).json({ message: "Invalid input", error });
+    }
 
+    console.log(`Attempting admin login for username: ${data.username}`);
     const token = await adminLogin(data.username, data.password);
+    
     if (!token) {
+      console.log("Admin login failed - invalid credentials");
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    console.log("Admin login successful - token generated");
     return res.status(200).json({ token });
   });
 

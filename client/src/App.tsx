@@ -6,6 +6,7 @@ import Layout from "@/components/Layout";
 import UserManagement from "@/pages/UserManagement";
 import BookingRequests from "@/pages/BookingRequests";
 import DriverAllocation from "@/pages/DriverAllocation";
+import HealthCheck from "@/pages/HealthCheck";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -15,7 +16,8 @@ function Router() {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!isAuthenticated && location !== "/login") {
+    const excludedPaths = ["/login", "/health"];
+    if (!isAuthenticated && !excludedPaths.includes(location)) {
       setLocation("/login");
     }
   }, [isAuthenticated, location, setLocation]);
@@ -23,6 +25,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      
+      <Route path="/health" component={HealthCheck} />
       
       <Route path="/">
         {isAuthenticated ? (
