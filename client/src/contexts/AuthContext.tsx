@@ -32,16 +32,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
+    console.log("AuthContext: Login called with", username);
     try {
+      console.log("AuthContext: Calling API login");
       const data = await apiAdminLogin(username, password);
-      if (data.token) {
+      console.log("AuthContext: API response", data);
+      
+      if (data && data.token) {
+        console.log("AuthContext: Setting token in localStorage");
         localStorage.setItem("adminToken", data.token);
+        console.log("AuthContext: Setting isAuthenticated to true");
         setIsAuthenticated(true);
         return true;
       }
+      console.log("AuthContext: No token received, login failed");
       return false;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("AuthContext: Login error:", error);
       return false;
     }
   };

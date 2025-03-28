@@ -3,6 +3,7 @@ import { apiRequest } from "./queryClient";
 // Admin API calls
 export const adminLogin = async (username: string, password: string) => {
   try {
+    console.log("api.ts: Making admin login request");
     // Direct fetch for login to avoid circular dependency with authorization
     const res = await fetch('/api/admin/login', {
       method: 'POST',
@@ -11,14 +12,19 @@ export const adminLogin = async (username: string, password: string) => {
       credentials: 'include'
     });
     
+    console.log("api.ts: Login response status:", res.status);
+    
     if (!res.ok) {
       const error = await res.text();
+      console.error("api.ts: Login failed with status", res.status, error);
       throw new Error(error || res.statusText);
     }
     
-    return await res.json();
+    const data = await res.json();
+    console.log("api.ts: Login successful, token received");
+    return data;
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('api.ts: Login error:', error);
     throw error;
   }
 };

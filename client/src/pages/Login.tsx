@@ -20,10 +20,13 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+    console.log("Logging in with:", username, password);
 
     try {
       // Use the existing auth function
       const success = await login(username, password);
+      console.log("Login result:", success);
+      
       if (success) {
         toast({
           title: "Login successful",
@@ -35,7 +38,7 @@ export default function Login() {
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
-      console.error(err);
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
